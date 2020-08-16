@@ -1,0 +1,33 @@
+version: "3"
+
+services:
+  master:
+    image: locustio/locust
+    ports:
+      - "8089:8089"
+    volumes:
+      - ./locust/:/mnt/locust
+    command: -f /mnt/locust/locustfile.py --master --step-load
+
+  worker:
+    image: locustio/locust
+    volumes:
+      - ./locust/:/mnt/locust
+    command: -f /mnt/locust/locustfile.py --worker --master-host master
+
+  exporter:
+    image: containersol/locust_exporter
+    network_mode: host
+    ports:
+      - "9646:9646"
+
+  prometheus:
+    image: prom/prometheus
+    network_mode: "service:exporter"
+    volumes:
+      - ./prometheus/:/etc/prometheus
+
+  grafana:
+    image: grafana/grafana
+    ports:
+      - "3000:3000"
